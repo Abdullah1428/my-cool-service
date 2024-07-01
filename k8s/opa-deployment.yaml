@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opa
+  template:
+    metadata:
+      labels:
+        app: opa
+    spec:
+      containers:
+      - name: opa
+        image: openpolicyagent/opa:edge-rootless
+        ports:
+        - containerPort: 8181
+        volumeMounts:
+        - mountPath: /policy
+          name: opa-policy
+          readOnly: true
+        args:
+          - "run"
+          - "--server"
+          - "/policy/authz.rego"
+      volumes:
+      - name: opa-policy
+        configMap:
+          name: opa-policy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opa
+spec:
+  selector:
+    app: opa
+  ports:
+    - protocol: TCP
+      port: 8181
+      targetPort: 8181
+
